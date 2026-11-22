@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>C++ & SQLite Mini Bank</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 16px;
+      width: 400px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    h2 { margin-top: 0; text-align: center; color: #38bdf8; }
+    .balance-box {
+      background: #0f172a;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+    .balance-label { font-size: 13px; color: #94a3b8; text-transform: uppercase; }
+    .balance-amount { font-size: 32px; font-weight: bold; color: #4ade80; margin-top: 5px; }
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #fff;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    .btn-group { display: flex; gap: 10px; }
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #fff;
+    }
+    .btn-deposit { background: #16a34a; }
+    .btn-deposit:hover { background: #15803d; }
+    .btn-withdraw { background: #dc2626; }
+    .btn-withdraw:hover { background: #b91c1c; }
+    #status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #334155;
+      font-size: 14px;
+      text-align: center;
+      color: #e2e8f0;
+    }
+    .history-title { margin-top: 20px; font-size: 14px; color: #94a3b8; }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    li {
+      background: #0f172a;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      border-left: 3px solid #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Mini Bank (C++ & SQLite)</h2>
+
+    <div class="balance-box">
+      <div class="balance-label">Available Balance</div>
+      <div class="balance-amount">₹ <span id="balance">0.00</span></div>
+    </div>
+
+    <input type="number" id="amountInput" placeholder="Enter amount (e.g. 500)" min="1">
+
+    <div class="btn-group">
+      <button class="btn-deposit" onclick="sendTransaction('deposit')">Deposit</button>
+      <button class="btn-withdraw" onclick="sendTransaction('withdraw')">Withdraw</button>
+    </div>
+
+    <div id="status">Connecting to C++ server...</div>
+
+    <div class="history-title">Transaction History (From SQLite DB)</div>
+    <ul id="historyList"></ul>
+  </div>
+
+  <script>
+    // Empty string = automatically uses the current Codespaces port 8080 URL
+    const API_URL = "";
+
+    function updateUI(data) {
+      document.getElementById("balance").innerText = data.balance;
+      document.getElementById("status").innerText = data.message;
+
+      const list = document.getElementById("historyList");
+      list.innerHTML = "";
+      data.history.slice().reverse().forEach(item => {
+        const li = document.createElement("li");
+        li.innerText = item;
+        list.appendChild(li);
+      });
+    }
+
+    async function sendTransaction(type) {
+      const amt = document.getElementById("amountInput").value;
+      if (!amt) {
+        document.getElementById("status").innerText = "Please enter an amount first.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/${type}?amt=${amt}`);
+        const data = await res.json();
+        updateUI(data);
+        document.getElementById("amountInput").value = "";
+      } catch (err) {
+        document.getElementById("status").innerText = "Error: C++ server is not running!";
+      }
+    }
+
+    window.onload = async () => {
+      try {
+        const res = await fetch(`${API_URL}/balance`);
+        const data = await res.json();
+        updateUI(data);
+      } catch (err) {
+        document.getElementById("status").innerText = "Error: Start ./server first!";
+      }
+    };
+  </script>
+</body>
+</html>
