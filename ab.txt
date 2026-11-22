@@ -1,0 +1,8 @@
+sqlite3 bank.db "SELECT * FROM account; SELECT * FROM transactions;"
+
+g++ server.cpp -o server -lsqlite3
+./server
+
+git add ab.txt
+git commit -m "Added text file"
+git push
